@@ -191,7 +191,7 @@ private:
         }
 
         isAllNormal = !hasDebugData;
-        equals = std::string( static_cast<std::size_t>( equalsCount) ,'=');
+        equals = std::string( static_cast<std::size_t>( 1 + equalsCount) ,'=');
 
     }
 
@@ -350,11 +350,11 @@ int main(int argc,char ** argv) try {
         }
     }
 
-    if( varFileName.empty() ){
+    if( varFileName.empty() ) {
         return -19;
     }
 
-    if( varFunctionName.empty() ){
+    if( varFunctionName.empty() ) {
         return -29;
     }
 
