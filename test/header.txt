@@ -1,1 +1,9 @@
 ﻿long word
+
+/*begin:import*/
+import xxxx_the_debug 1.0
+/*end:import*/
+
+/*begin:debug*/
+debug information
+/*end:debug*/

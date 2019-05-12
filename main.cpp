@@ -255,7 +255,7 @@ private:
         }
         (*outputFile) << "namespace "sv;
         (*outputFile) << thisNamespace;
-        (*outputFile) << " {\n"sv;
+        (*outputFile) << " {\n\n"sv;
     }
 
     void printNamespaceEnd() {
@@ -285,7 +285,7 @@ public:
 
         (*outputFile) << "\n"sv;
         (*outputFile) << "#include <string_view>\n"sv;
-        (*outputFile) << "using namespace std::string_view_literals;\n"sv;
+        (*outputFile) << "using namespace std::string_view_literals;\n\n"sv;
 
         if (isAllNormal) {
             Lock varLock{ this };
