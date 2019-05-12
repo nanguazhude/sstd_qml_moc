@@ -73,9 +73,11 @@ inline int getMaxEquals(const std::string_view arg) {
                 for (++varPos; varPos != varEnd; ++varPos) {
                     if (*varPos == '=') {
                         varCount = 1;
-                        ++varPos;
                         break;
                     }
+                }
+                if (varPos == varEnd) {
+                    break;
                 }
             }
         }
@@ -238,7 +240,7 @@ private:
         printNamespaceBegin();
         (*outputFile) << "extern std::string_view "sv << thisFunctionName;
         (*outputFile) << " ( ) {\n    return "sv;
-        (*outputFile) << "u8R\"("sv << equals;
+        (*outputFile) << "u8R\""sv << equals << "("sv;
     }
 
     void printEnd() {
