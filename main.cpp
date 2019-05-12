@@ -56,22 +56,22 @@ inline decltype(auto) streamFileName(const T & arg) {
 
 using namespace std::string_literals;
 
-inline int getMaxEquals(const std::string_view arg){
+inline int getMaxEquals(const std::string_view arg) {
 
-    int varAns   = 0;
+    int varAns = 0;
     int varCount = 0;
     {
         auto varPos = arg.begin();
         const auto varEnd = arg.end();
-        for( ;varPos!=varEnd;++varPos ){
-            if(*varPos=='='){
-                ++varCount ;
-            }else{
-                if(varCount>varAns){
-                    varAns=varCount;
+        for (; varPos != varEnd; ++varPos) {
+            if (*varPos == '=') {
+                ++varCount;
+            } else {
+                if (varCount > varAns) {
+                    varAns = varCount;
                 }
-                for( ++varPos;varPos!=varEnd;++varPos ){
-                    if( *varPos=='=' ){
+                for (++varPos; varPos != varEnd; ++varPos) {
+                    if (*varPos == '=') {
                         varCount = 1;
                         ++varPos;
                         break;
@@ -81,14 +81,14 @@ inline int getMaxEquals(const std::string_view arg){
         }
     }
 
-    if(varCount>varAns){
-        varAns=varCount;
+    if (varCount > varAns) {
+        varAns = varCount;
     }
 
     return varAns;
 }
 
-class Concept{
+class Concept {
 public:
     const fs::path inputFileName;
     const fs::path outputFileName;
@@ -100,34 +100,34 @@ private:
     std::string thisFunctionName;
 public:
     inline Concept(std::string_view argNameSpace,
-            std::string_view argFunctionName,
-            fs::path argInputFileName,
-                   std::string_view argoutputFileName) :
-        inputFileName{std::move(argInputFileName)},
-        outputFileName{argoutputFileName}{
-        inputFile.emplace( streamFileName(inputFileName) , std::ios::binary );
-        if( !inputFile->is_open() ){
-            throw -2;
+        std::string_view argFunctionName,
+        fs::path argInputFileName,
+        std::string_view argoutputFileName) :
+        inputFileName{ std::move(argInputFileName) },
+        outputFileName{ argoutputFileName }{
+        inputFile.emplace(streamFileName(inputFileName), std::ios::binary);
+        if (!inputFile->is_open()) {
+            throw - 2;
         }
         removeUtf8Bom(*inputFile);
-        outputFile.emplace( streamFileName(outputFileName) , std::ios::binary );
-        if( !outputFile->is_open() ){
-            throw -3;
+        outputFile.emplace(streamFileName(outputFileName), std::ios::binary);
+        if (!outputFile->is_open()) {
+            throw - 3;
         }
         outputFile->sync_with_stdio(false);
         inputFile->sync_with_stdio(false);
-        outputFile->write( globalUtf8Bom.data(),globalUtf8Bom.size() );
+        outputFile->write(globalUtf8Bom.data(), globalUtf8Bom.size());
 
         thisFunctionName = argFunctionName;
         thisNamespace = argNameSpace;
 
     }
 
-    inline ~Concept(){
-        if( inputFile ){
+    inline ~Concept() {
+        if (inputFile) {
             inputFile->close();
         }
-        if( outputFile ){
+        if (outputFile) {
             outputFile->close();
         }
     }
@@ -142,18 +142,18 @@ private:
         end_import_type
     };
 
-    class Line{
+    class Line {
     public:
         std::string line;
         std::size_t type = normal_line;
     };
 
     std::list< Line > inputFileData;
-    bool isAllNormal{false};
-    int equalsCount{1};
+    bool isAllNormal{ false };
+    int equalsCount{ 1 };
     std::string equals;
 
-    void readAll(){
+    void readAll() {
 
         std::string varLine;
 
@@ -163,13 +163,13 @@ private:
         const static std::regex globalRegexImportEnd{ u8R"(\s*/\*end:import\*/\s*)", std::regex::icase };
         bool hasDebugData = false;
 
-        const auto & varRegexDebugBegin  = globalRegexDebugBegin;
-        const auto & varRegexDebugEnd    = globalRegexDebugEnd;
+        const auto & varRegexDebugBegin = globalRegexDebugBegin;
+        const auto & varRegexDebugEnd = globalRegexDebugEnd;
         const auto & varRegexImportBegin = globalRegexImportBegin;
-        const auto & varRegexImportEnd   = globalRegexImportEnd;
+        const auto & varRegexImportEnd = globalRegexImportEnd;
 
-        while( inputFile->good() ){
-            std::getline(*inputFile,varLine);
+        while (inputFile->good()) {
+            std::getline(*inputFile, varLine);
             auto & varTheLine = inputFileData.emplace_back();
             if (varLine.empty() == false) {
                 if (std::regex_match(varLine, varRegexDebugBegin)) {
@@ -186,17 +186,17 @@ private:
                     hasDebugData = true;
                 }
             }
-            equalsCount = std::max(equalsCount, getMaxEquals( varLine ));
-            varTheLine.line = std::move( varLine );
+            equalsCount = std::max(equalsCount, getMaxEquals(varLine));
+            varTheLine.line = std::move(varLine);
         }
 
         isAllNormal = !hasDebugData;
-        equals = std::string( static_cast<std::size_t>( 1 + equalsCount) ,'=');
+        equals = std::string(static_cast<std::size_t>(1 + equalsCount), '=');
 
     }
 
     template<bool isRelease>
-    void write(){
+    void write() {
 
         const static std::regex globalRegexTheDebug{ u8R"(_the_debug)", std::regex::icase };
         const auto & varRegexTheDebug = globalRegexTheDebug;
@@ -204,9 +204,9 @@ private:
         int varDebugCount = 0;
         int varImportCount = 0;
 
-        auto & varOutStream = * outputFile;
+        auto & varOutStream = *outputFile;
 
-        for (const auto & varLine : inputFileData ) {
+        for (const auto & varLine : inputFileData) {
 
             const auto varOldDebugCount = varDebugCount;
 
@@ -217,12 +217,13 @@ private:
             case end_import_type:--varImportCount; break;
             }
 
-            if constexpr(!isRelease){
+            if constexpr (!isRelease) {
                 varOutStream << varLine.line << '\n';
-            }else{
+                (void)varRegexTheDebug;
+            } else {
                 if ((0 < varDebugCount) || (0 < varOldDebugCount)) {
                     varOutStream << u8"/*remove debug information*/"sv << '\n';
-                } else if ( varImportCount > 0 ) {
+                } else if (varImportCount > 0) {
                     varOutStream << std::regex_replace(varLine.line, varRegexTheDebug, ""s) << '\n';
                 } else {
                     varOutStream << varLine.line << '\n';
@@ -235,86 +236,86 @@ private:
 
     void printStart() {
         printNamespaceBegin();
-        (* outputFile ) << "extern std::string_view "sv << thisFunctionName ;
-        (* outputFile ) << " ( ) {\n    return "sv;
-        (* outputFile ) << "u8R\"("sv  << equals;
+        (*outputFile) << "extern std::string_view "sv << thisFunctionName;
+        (*outputFile) << " ( ) {\n    return "sv;
+        (*outputFile) << "u8R\"("sv << equals;
     }
 
     void printEnd() {
-        (* outputFile ) << ")"sv << equals <<"\"sv"sv   ;
-        (* outputFile ) << ";\n}\n"sv;
+        (*outputFile) << ")"sv << equals << "\"sv"sv;
+        (*outputFile) << ";\n}\n"sv;
         printNamespaceEnd();
     }
 
-    void printNamespaceBegin(){
-        if( thisNamespace.empty() ){
+    void printNamespaceBegin() {
+        if (thisNamespace.empty()) {
             return;
         }
-        (* outputFile ) << "namespace "sv;
-        (* outputFile ) << thisNamespace;
-        (* outputFile ) << " {\n"sv;
+        (*outputFile) << "namespace "sv;
+        (*outputFile) << thisNamespace;
+        (*outputFile) << " {\n"sv;
     }
 
-    void printNamespaceEnd(){
-        if( thisNamespace.empty() ){
+    void printNamespaceEnd() {
+        if (thisNamespace.empty()) {
             return;
         }
-        (* outputFile ) << "\n}\n"sv;
+        (*outputFile) << "\n}\n"sv;
     }
 
 
 public:
 
-    void run(){
+    void run() {
 
         readAll();
 
-        class Lock{
+        class Lock {
             Concept * const thisp;
         public:
-            inline Lock(Concept * arg) : thisp{arg} {
+            inline Lock(Concept * arg) : thisp{ arg } {
                 thisp->printStart();
             }
-            inline ~Lock(){
+            inline ~Lock() {
                 thisp->printEnd();
             }
         };
 
-        (* outputFile ) << "\n"sv;
-        (* outputFile ) << "#include <string_view>\n"sv;
-        (* outputFile ) << "using namespace std::string_view_literals;\n"sv;
+        (*outputFile) << "\n"sv;
+        (*outputFile) << "#include <string_view>\n"sv;
+        (*outputFile) << "using namespace std::string_view_literals;\n"sv;
 
-        if( isAllNormal ){
-            Lock varLock{this} ;
-            for( const auto & varLine : inputFileData ){
-                (* outputFile ) << varLine.line ;
+        if (isAllNormal) {
+            Lock varLock{ this };
+            for (const auto & varLine : inputFileData) {
+                (*outputFile) << varLine.line;
             }
             return;
         }
 
-        (* outputFile ) << "#if defined(_DEBUG)\n"sv ;
+        (*outputFile) << "#if defined(_DEBUG)\n"sv;
 
         {
-            Lock varLock{this} ;
+            Lock varLock{ this };
             write<false>();
         }
 
-        (* outputFile ) << "#else\n"sv;
+        (*outputFile) << "#else\n"sv;
 
         {
-            Lock varLock{this} ;
+            Lock varLock{ this };
             write<true>();
         }
 
-        (* outputFile ) << "#endif\n"sv;
+        (*outputFile) << "#endif\n"sv;
 
     }
 
 };
 
-int main(int argc,char ** argv) try {
+int main(int argc, char ** argv) try {
 
-    if( argc < 3 ){
+    if (argc < 3) {
         return -1;
     }
 
@@ -325,7 +326,7 @@ int main(int argc,char ** argv) try {
     const fs::path varInput{ argv[1] };
     {
         std::ifstream varReadFile{ streamFileName(varInput) , std::ios::binary };
-        if( !varReadFile.is_open() ){
+        if (!varReadFile.is_open()) {
             return -7;
         }
         varReadFile.sync_with_stdio(false);
@@ -350,24 +351,24 @@ int main(int argc,char ** argv) try {
         }
     }
 
-    if( varFileName.empty() ) {
+    if (varFileName.empty()) {
         return -19;
     }
 
-    if( varFunctionName.empty() ) {
+    if (varFunctionName.empty()) {
         return -29;
     }
 
-    Concept varConcept{varNameSpace,
+    Concept varConcept{ varNameSpace,
                 varFunctionName,
                 fs::path(argv[1]).replace_filename(varFileName) ,
-                argv[2]};
+                argv[2] };
     varConcept.run();
     return 0;
 
-} catch(int ans){
+} catch (int ans) {
     return ans;
-} catch( ... ){
+} catch (...) {
     return -999999;
 }
 
